@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}All Resumes — Resume Parser{% endblock %}
+
+{% block content %}
+<section class="list-page">
+    <div class="list-header">
+        <h1 class="gradient-text">All Parsed Resumes</h1>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">+ Upload New</a>
+    </div>
+
+    {% if resumes %}
+    <div class="table-container">
+        <table class="resume-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Skills</th>
+                    <th>File</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resume in resumes %}
+                <tr>
+                    <td>
+                        <div class="table-name">
+                            <span class="table-avatar">{{ (resume.name or 'U')[0] | upper }}</span>
+                            {{ resume.name or 'Unknown' }}
+                        </div>
+                    </td>
+                    <td>{{ resume.email or '—' }}</td>
+                    <td>{{ resume.phone or '—' }}</td>
+                    <td><span class="count-badge">{{ resume.skills | length }}</span></td>
+                    <td class="table-file">{{ resume.file_name }}</td>
+                    <td>{{ resume.created_at.strftime('%b %d, %Y') if resume.created_at else '—' }}</td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{{ url_for('main.resume_detail', resume_id=resume.id) }}" class="btn btn-sm btn-outline">View</a>
+                            <form action="{{ url_for('main.delete_resume', resume_id=resume.id) }}" method="POST" style="display:inline"
+                                  onsubmit="return confirm('Delete this resume?')">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No resumes yet</h3>
+        <p>Upload your first resume to get started!</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Upload Resume</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

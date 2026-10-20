@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Login / Sign Up &mdash; Resume Parser{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <!-- Auth Tabs -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="auth-form-container active">
+            <h2 class="auth-title">Welcome Back</h2>
+            <p class="auth-subtitle">Enter your credentials to access your account</p>
+            
+            <form action="{{ url_for('main.login') }}" method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="login-email" class="form-label">Email Address</label>
+                    <input type="email" id="login-email" name="email" class="form-input" placeholder="you@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="login-password" class="form-label">Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="login-password" name="password" class="form-input" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('login-password')">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="auth-form-container">
+            <h2 class="auth-title">Join Us</h2>
+            <p class="auth-subtitle">Create a new account to manage your parsed resumes</p>
+            
+            <form action="{{ url_for('main.register') }}" method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="register-name" class="form-label">Full Name</label>
+                    <input type="text" id="register-name" name="name" class="form-input" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="register-email" class="form-label">Email Address</label>
+                    <input type="email" id="register-email" name="email" class="form-input" placeholder="you@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-password" class="form-label">Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="register-password" name="password" class="form-input" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('register-password')">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function switchAuthTab(tab) {
+        // Update tabs
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // Update forms
+        document.querySelectorAll('.auth-form-container').forEach(f => f.classList.remove('active'));
+        document.getElementById(tab + '-form').classList.add('active');
+    }
+
+    function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const button = input.nextElementSibling;
+        const icon = button.querySelector('.eye-icon');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = '🙈'; // Or a different icon for "hide"
+        } else {
+            input.type = 'password';
+            icon.textContent = '👁️';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Parser — Upload Your Resume{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <span class="gradient-text">AI-Powered</span> Resume Parser
+        </h1>
+        <p class="hero-subtitle">
+            Upload your resume and let our intelligent parser extract structured data — 
+            skills, experience, education, and contact info — in seconds.
+        </p>
+    </div>
+</section>
+
+<!-- Upload Section -->
+<section class="upload-section">
+    <div class="upload-card">
+        <form action="{{ url_for('main.upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </div>
+                <h3 class="upload-title">Drop your resume here</h3>
+                <p class="upload-text">or click to browse files</p>
+                <p class="upload-formats">Supports <strong>PDF</strong> and <strong>DOCX</strong> (Max 16MB)</p>
+                <input type="file" name="resume" id="resumeFile" accept=".pdf,.docx" hidden>
+            </div>
+            <div class="file-preview" id="filePreview" style="display:none;">
+                <div class="file-info">
+                    <span class="file-icon">📎</span>
+                    <div>
+                        <p class="file-name" id="fileName"></p>
+                        <p class="file-size" id="fileSize"></p>
+                    </div>
+                </div>
+                <button type="button" class="file-remove" id="fileRemove">✕</button>
+            </div>
+            <button type="submit" class="btn btn-primary btn-upload" id="uploadBtn" disabled>
+                <span class="btn-icon">🚀</span>
+                Parse Resume
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <h2 class="section-title">What We Extract</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">👤</div>
+            <h3>Personal Info</h3>
+            <p>Name, email, phone, LinkedIn & GitHub profiles</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💼</div>
+            <h3>Work Experience</h3>
+            <p>Job titles, companies, dates and responsibilities</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎓</div>
+            <h3>Education</h3>
+            <p>Degrees, institutions, fields of study & GPA</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Skills</h3>
+            <p>Programming languages, frameworks, tools & databases</p>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Resumes -->
+{% if resumes %}
+<section class="recent-section">
+    <h2 class="section-title">Recently Parsed</h2>
+    <div class="recent-grid">
+        {% for resume in resumes %}
+        <a href="{{ url_for('main.resume_detail', resume_id=resume.id) }}" class="recent-card">
+            <div class="recent-avatar">{{ (resume.name or 'U')[0] | upper }}</div>
+            <div class="recent-info">
+                <h4>{{ resume.name or 'Unknown' }}</h4>
+                <p>{{ resume.email or 'No email found' }}</p>
+                <span class="recent-date">{{ resume.created_at.strftime('%b %d, %Y') if resume.created_at else '' }}</span>
+            </div>
+            <span class="recent-arrow">→</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('resumeFile');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileRemove = document.getElementById('fileRemove');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    // Click to upload
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    // Drag & drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            showFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // File selected
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            showFile(fileInput.files[0]);
+        }
+    });
+
+    function showFile(file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = formatSize(file.size);
+        uploadZone.style.display = 'none';
+        filePreview.style.display = 'flex';
+        uploadBtn.disabled = false;
+    }
+
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    // Remove file
+    fileRemove.addEventListener('click', () => {
+        fileInput.value = '';
+        uploadZone.style.display = 'flex';
+        filePreview.style.display = 'none';
+        uploadBtn.disabled = true;
+    });
+
+    // Upload animation
+    document.getElementById('uploadForm').addEventListener('submit', () => {
+        uploadBtn.innerHTML = '<span class="spinner"></span> Parsing...';
+        uploadBtn.disabled = true;
+    });
+</script>
+{% endblock %}

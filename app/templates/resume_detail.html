@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}{{ resume.name or 'Resume' }} — Parsed Results{% endblock %}
+
+{% block content %}
+<section class="detail-page">
+    <div class="split-container">
+        <!-- Left Side: Parsed Data -->
+        <div class="split-left">
+    <!-- Header -->
+    <div class="detail-header">
+        <div class="detail-header-content">
+            <div class="detail-avatar">{{ (resume.name or 'U')[0] | upper }}</div>
+            <div class="detail-header-info">
+                <h1>{{ resume.name or 'Name Not Found' }}</h1>
+                <p class="detail-file">📎 {{ resume.file_name }}</p>
+            </div>
+        </div>
+        <div class="detail-actions">
+            <a href="{{ url_for('main.api_resume', resume_id=resume.id) }}" class="btn btn-outline" target="_blank">
+                📋 JSON API
+            </a>
+            <form action="{{ url_for('main.delete_resume', resume_id=resume.id) }}" method="POST" style="display:inline"
+                  onsubmit="return confirm('Delete this resume?')">
+                <button type="submit" class="btn btn-danger">🗑 Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Info Cards -->
+    <div class="info-grid">
+        {% if resume.email %}
+        <div class="info-card">
+            <span class="info-icon">📧</span>
+            <div>
+                <span class="info-label">Email</span>
+                <a href="mailto:{{ resume.email }}" class="info-value">{{ resume.email }}</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if resume.phone %}
+        <div class="info-card">
+            <span class="info-icon">📱</span>
+            <div>
+                <span class="info-label">Phone</span>
+                <span class="info-value">{{ resume.phone }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if resume.linkedin_url %}
+        <div class="info-card">
+            <span class="info-icon">💼</span>
+            <div>
+                <span class="info-label">LinkedIn</span>
+                <a href="{{ resume.linkedin_url }}" target="_blank" class="info-value">{{ resume.linkedin_url }}</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if resume.github_url %}
+        <div class="info-card">
+            <span class="info-icon">🐙</span>
+            <div>
+                <span class="info-label">GitHub</span>
+                <a href="{{ resume.github_url }}" target="_blank" class="info-value">{{ resume.github_url }}</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Summary -->
+    {% if resume.summary %}
+    <div class="detail-section">
+        <h2 class="detail-section-title">
+            <span class="section-icon">📝</span> Summary
+        </h2>
+        <div class="detail-card">
+            <p class="summary-text">{{ resume.summary }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Skills -->
+    {% if resume.skills %}
+    <div class="detail-section">
+        <h2 class="detail-section-title">
+            <span class="section-icon">⚡</span> Skills
+            <span class="count-badge">{{ resume.skills | length }}</span>
+        </h2>
+        <div class="detail-card">
+            <div class="skills-container">
+                {% set categories = resume.skills | map(attribute='category') | unique | list %}
+                {% for cat in categories %}
+                <div class="skill-category">
+                    <h4 class="skill-cat-title">{{ cat or 'Other' }}</h4>
+                    <div class="skill-tags">
+                        {% for skill in resume.skills if skill.category == cat %}
+                        <span class="skill-tag skill-tag-{{ loop.index0 % 4 }}">{{ skill.skill_name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Experience -->
+    {% if resume.experience %}
+    <div class="detail-section">
+        <h2 class="detail-section-title">
+            <span class="section-icon">💼</span> Experience
+            <span class="count-badge">{{ resume.experience | length }}</span>
+        </h2>
+        <div class="detail-card">
+            {% for exp in resume.experience %}
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-header-flex">
+                        <h4>{{ exp.job_title or 'Position' }}</h4>
+                        {% if exp.start_date or exp.end_date %}
+                        <span class="timeline-date-badge">📅 {{ exp.start_date or '?' }} — {{ exp.end_date or 'Present' }}</span>
+                        {% endif %}
+                    </div>
+                    {% if exp.company %}<p class="timeline-org">🏢 {{ exp.company }}</p>{% endif %}
+                    {% if exp.description %}
+                    <div class="timeline-desc">
+                        {% for line in exp.description.split('\n') %}
+                            {% if line.strip() %}
+                            <p class="timeline-desc-line">{{ line }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Projects -->
+    {% if resume.projects %}
+    <div class="detail-section">
+        <h2 class="detail-section-title">
+            <span class="section-icon">🚀</span> Projects
+            <span class="count-badge">{{ resume.projects | length }}</span>
+        </h2>
+        <div class="detail-card">
+            {% for proj in resume.projects %}
+            <div class="project-item">
+                <div class="project-header">
+                    <h3 class="project-title">{{ proj.title }}</h3>
+                    {% if proj.link %}
+                    <a href="{{ proj.link }}" target="_blank" class="project-link">🔗 View Project</a>
+                    {% endif %}
+                </div>
+                {% if proj.technologies %}
+                <p class="project-tech"><strong>Tech Stack:</strong> {{ proj.technologies }}</p>
+                {% endif %}
+                {% if proj.description %}
+                <div class="project-desc">
+                    {% for line in proj.description.split('\n') %}
+                        {% if line.strip() %}
+                        <p class="project-desc-line">{{ line }}</p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if not loop.last %}<hr class="project-divider">{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Education -->
+    {% if resume.education %}
+    <div class="detail-section">
+        <h2 class="detail-section-title">
+            <span class="section-icon">🎓</span> Education
+            <span class="count-badge">{{ resume.education | length }}</span>
+        </h2>
+        <div class="detail-card">
+            {% for edu in resume.education %}
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h4>{{ edu.degree or 'Degree' }}</h4>
+                    {% if edu.institution %}<p class="timeline-org">{{ edu.institution }}</p>{% endif %}
+                    {% if edu.field_of_study %}<p class="timeline-field">{{ edu.field_of_study }}</p>{% endif %}
+                    {% if edu.start_date or edu.end_date %}
+                    <p class="timeline-date">{{ edu.start_date or '?' }} — {{ edu.end_date or 'Present' }}</p>
+                    {% endif %}
+                    {% if edu.gpa %}<p class="timeline-gpa">GPA: {{ edu.gpa }}</p>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Raw Text -->
+    <div class="detail-section">
+        <h2 class="detail-section-title">
+            <span class="section-icon">📄</span> Raw Extracted Text
+        </h2>
+        <details class="raw-text-toggle">
+            <summary class="raw-text-summary">Click to expand raw text</summary>
+            <div class="detail-card">
+                <pre class="raw-text">{{ resume.raw_text }}</pre>
+            </div>
+        </details>
+    </div>
+
+    <!-- Back Link -->
+    <div class="detail-back">
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline">← Upload Another</a>
+        <a href="{{ url_for('main.resume_list') }}" class="btn btn-outline">📋 All Resumes</a>
+    </div>
+        </div> <!-- End split-left -->
+
+        <!-- Right Side: Resume Preview -->
+        <div class="split-right">
+            <h2 class="detail-section-title">
+                <span class="section-icon">👀</span> Resume Preview
+            </h2>
+            <div class="preview-container">
+                <iframe src="{{ url_for('main.serve_resume', filename=resume.file_name) }}" class="resume-iframe" title="Resume Preview"></iframe>
+            </div>
+        </div> <!-- End split-right -->
+    </div> <!-- End split-container -->
+</section>
+{% endblock %}
